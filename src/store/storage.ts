@@ -21,6 +21,9 @@ export interface MediaItem {
   thumbnailUri?: string; // generated thumbnail for video cards
   hidden: boolean;       // hidden from main view; accessible via Hidden folder
   archived: boolean;     // archived; accessible via Archive folder
+  videoWidth?: number;   // source video frame dimensions, for Reels landscape
+  videoHeight?: number;  // letterboxing — computed once at thumbnail-backfill
+                          // time, not detected live from the player (unreliable)
 }
 
 export interface Folder {

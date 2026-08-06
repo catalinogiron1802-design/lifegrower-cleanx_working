@@ -47,9 +47,21 @@ const ReelItem = React.memo(function ReelItem({
   const [muted, setMuted] = useState(false);
   const [paused, setPaused] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [videoSize, setVideoSize] = useState<{ width: number; height: number } | null>(
-    () => videoSizeCache.get(item.id) ?? null
-  );
+  // Prefer dimensions already computed and stored on the item itself (via
+  // LibraryScreen's thumbnail backfill) — synchronous and reliable, unlike
+  // detecting them live from the player, which needs the video to actually
+  // load first and has proven unreliable on a genuinely fresh view (no
+  // amount of caching helps if the *first* detection never completes before
+  // the user moves on). Falls back to the live-detection cache below only
+  // for videos that haven't been backfilled yet.
+  const [videoSize, setVideoSize] = useState<{ width: number; height: number } | null>(() => {
+    if (item.videoWidth && item.videoHeight) {
+      const stored = { width: item.videoWidth, height: item.videoHeight };
+      videoSizeCache.set(item.id, stored); // seeds the cache so live detection below no-ops too
+      return stored;
+    }
+    return videoSizeCache.get(item.id) ?? null;
+  });
   const [retryKey, setRetryKey] = useState(0);
   const [showControls, setShowControls] = useState(false);
 

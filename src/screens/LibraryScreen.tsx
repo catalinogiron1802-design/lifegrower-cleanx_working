@@ -198,12 +198,15 @@ export default function LibraryScreen({ isActive, bottomInset = 0 }: LibraryScre
     load();
   }, [isActive, load]));
 
-  // Backfill thumbnails for existing videos that don't have one yet
+  // Backfill thumbnails (and video dimensions, used by Reels for correct
+  // landscape letterboxing) for existing videos missing either.
   useFocusEffect(useCallback(() => {
     if (!isActive) return;
     const backfill = async () => {
       const all = await Storage.getAll();
-      const missing = all.filter(i => i.type === 'video' && !i.thumbnailUri && i.uri);
+      const missing = all.filter(i =>
+        i.type === 'video' && i.uri && (!i.thumbnailUri || !i.videoWidth || !i.videoHeight)
+      );
       if (missing.length === 0) return;
 
       for (const item of missing) {
@@ -223,15 +226,27 @@ export default function LibraryScreen({ isActive, bottomInset = 0 }: LibraryScre
           }
 
           let thumbUri: string | null = null;
+          let videoWidth: number | undefined;
+          let videoHeight: number | undefined;
           for (const t of [0, 500, 1000, 2000]) {
             try {
               const result = await VideoThumbnails.getThumbnailAsync(localUri, { time: t, quality: 0.7 });
               thumbUri = result.uri;
+              videoWidth = result.width;
+              videoHeight = result.height;
               break;
             } catch { /* try next timestamp */ }
           }
           if (thumbUri) {
-            await Storage.updateItem(item.id, { thumbnailUri: thumbUri });
+            // The thumbnail preserves the source video's frame aspect ratio,
+            // so its dimensions double as a reliable, synchronous way for
+            // Reels to know landscape vs. portrait up front — unlike
+            // detecting it live from the player, which needs the video to
+            // actually load first and has proven unreliable on a fresh view.
+            await Storage.updateItem(item.id, {
+              thumbnailUri: thumbUri,
+              ...(videoWidth && videoHeight ? { videoWidth, videoHeight } : {}),
+            });
           }
         } catch { /* skip */ }
       }
