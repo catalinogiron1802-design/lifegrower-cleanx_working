@@ -19,8 +19,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
 import { Folder, FolderStorage, MediaItem, Storage } from '../src/store/storage';
 import { useServerUrl } from '../src/utils/serverConfig';
+import { useSwipeTabNavigation } from '../src/utils/swipeTabNavigation';
 import { Colors, Radius, Shadow } from '../src/utils/theme';
 
 const { width } = Dimensions.get('window');
@@ -631,7 +633,10 @@ export default function LibraryScreen() {
 
   const isInSpecialFolder = activeFolderId === HIDDEN_FOLDER || activeFolderId === ARCHIVED_FOLDER;
 
+  const swipeGesture = useSwipeTabNavigation();
+
   return (
+    <GestureDetector gesture={swipeGesture}>
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
 
@@ -839,6 +844,7 @@ export default function LibraryScreen() {
         </View>
       </Modal>
     </View>
+    </GestureDetector>
   );
 }
 

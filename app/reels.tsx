@@ -9,7 +9,9 @@ import { useFocusEffect, useNavigation, router } from 'expo-router';
 import { Colors, Radius } from '../src/utils/theme';
 import { Storage, FolderStorage, MediaItem, Folder } from '../src/store/storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GestureDetector } from 'react-native-gesture-handler';
 import { getTabBarStyle } from './_layout';
+import { useSwipeTabNavigation } from '../src/utils/swipeTabNavigation';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const ITEM_HEIGHT = SCREEN_H;
@@ -439,6 +441,7 @@ const ReelItem = React.memo(function ReelItem({
 export default function ReelsScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const swipeGesture = useSwipeTabNavigation();
   const [allItems, setAllItems]       = useState<MediaItem[]>([]);
   const [folders, setFolders]         = useState<Folder[]>([]);
   const [activeFolderId, setActiveFolderId] = useState<string | null | 'all'>('all');
@@ -678,6 +681,7 @@ export default function ReelsScreen() {
   }
 
   return (
+    <GestureDetector gesture={swipeGesture}>
     <View style={styles.container}>
       {items.length > 0 ? (
         <FlatList
@@ -850,6 +854,7 @@ export default function ReelsScreen() {
         </View>
       )}
     </View>
+    </GestureDetector>
   );
 }
 

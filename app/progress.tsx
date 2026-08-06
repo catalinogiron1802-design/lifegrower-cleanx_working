@@ -8,7 +8,9 @@ import {
   Text,
   View
 } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
 import { MediaItem, Storage } from '../src/store/storage';
+import { useSwipeTabNavigation } from '../src/utils/swipeTabNavigation';
 import { Colors, Radius } from '../src/utils/theme';
 
 const SESSIONS_KEY = 'lifegrower_sessions';
@@ -22,6 +24,7 @@ interface Achievement {
 }
 
 export default function ProgressScreen() {
+  const swipeGesture = useSwipeTabNavigation();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
 
@@ -120,6 +123,7 @@ export default function ProgressScreen() {
     : 0;
 
   return (
+    <GestureDetector gesture={swipeGesture}>
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -211,6 +215,7 @@ export default function ProgressScreen() {
 
       </ScrollView>
     </View>
+    </GestureDetector>
   );
 }
 
