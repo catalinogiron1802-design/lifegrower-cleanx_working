@@ -30,8 +30,19 @@ jobs:
         run: |
           set -euo pipefail
           WORKSPACE=$(find ios -maxdepth 1 -name "*.xcworkspace" | head -n1)
-          SCHEME=$(xcodebuild -list -workspace "$WORKSPACE" -json \
-            | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{console.log(JSON.parse(d).workspace.schemes[0]);});")
+          echo "Workspace: $WORKSPACE"
+
+          echo "All schemes reported by xcodebuild -list (for reference):"
+          xcodebuild -list -workspace "$WORKSPACE" -json || true
+
+          # The app's own scheme is named after its .xcodeproj (CocoaPods' own
+          # project is always "Pods.xcodeproj", so excluding it isolates the
+          # real app project). Picking schemes[0] from `-list` was unreliable —
+          # it previously grabbed a Pods-related scheme, building only the
+          # dependency libraries with no actual .app product.
+          APP_PROJECT=$(find ios -maxdepth 1 -name "*.xcodeproj" ! -name "Pods.xcodeproj" | head -n1)
+          SCHEME=$(basename "$APP_PROJECT" .xcodeproj)
+
           echo "workspace=$WORKSPACE" >> "$GITHUB_OUTPUT"
           echo "scheme=$SCHEME" >> "$GITHUB_OUTPUT"
           echo "Using workspace=$WORKSPACE scheme=$SCHEME"
