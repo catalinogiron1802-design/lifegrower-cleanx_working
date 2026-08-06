@@ -105,6 +105,18 @@ const ReelItem = React.memo(function ReelItem({
       const height = videoTrack?.size?.height;
       if (width && height) setVideoSize({ width, height });
     });
+
+    // The track can resolve before this effect subscribes (the player is
+    // recreated from scratch every time a reel becomes active), which would
+    // silently miss the videoTrackChange event above. Check the already-
+    // current track as a fallback so we don't depend on winning that race.
+    try {
+      const vt: any = (player as any).videoTrack;
+      if (vt?.size?.width && vt?.size?.height) {
+        setVideoSize({ width: vt.size.width, height: vt.size.height });
+      }
+    } catch (_) {}
+
     return () => { sub.remove(); sub2.remove(); };
   }, [player]);
 
