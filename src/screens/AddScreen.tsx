@@ -1,18 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
-import { router, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator, Alert, Image, Modal, ScrollView, StatusBar,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
-import { GestureDetector } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
-import { Folder, FolderStorage, MediaItem, Storage } from '../src/store/storage';
-import { useServerUrl } from '../src/utils/serverConfig';
-import { useSwipeTabNavigation } from '../src/utils/swipeTabNavigation';
-import { Colors, Radius, Shadow } from '../src/utils/theme';
+import { Folder, FolderStorage, MediaItem, Storage } from '../store/storage';
+import { useServerUrl } from '../utils/serverConfig';
+import { Colors, Radius, Shadow } from '../utils/theme';
 
 function generateId() {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -45,8 +42,12 @@ interface FetchedFile {
   url:  string;
 }
 
-export default function AddScreen() {
-  const { gesture: swipeGesture, animatedStyle: swipeAnimatedStyle } = useSwipeTabNavigation();
+interface AddScreenProps {
+  isActive: boolean;
+  onRequestLibraryPage: () => void;
+}
+
+export default function AddScreen({ isActive, onRequestLibraryPage }: AddScreenProps) {
   const SERVER_URL = useServerUrl();
   const SERVER_IP  = SERVER_URL.replace(/^https?:\/\//, '').replace(/:\d+$/, '');
   const [title, setTitle]           = useState('');
@@ -76,8 +77,9 @@ export default function AddScreen() {
   const [linkStatus, setLinkStatus]     = useState('');
 
   useFocusEffect(useCallback(() => {
+    if (!isActive) return;
     FolderStorage.getAll().then(setFolders);
-  }, []));
+  }, [isActive]));
 
   const selectedFolder = folders.find(f => f.id === selectedFolderId);
   const syncFolder     = folders.find(f => f.id === syncFolderId);
@@ -253,7 +255,7 @@ export default function AddScreen() {
       };
       await Storage.addItem(newItem);
       Alert.alert('🌱 Added!', `"${title}" added to your growth library.`, [
-        { text: 'View Library', onPress: () => router.push('/') },
+        { text: 'View Library', onPress: onRequestLibraryPage },
         { text: 'Add Another',  onPress: () => { setTitle(''); setNote(''); setSelectedMedia(null); setSelectedFolderId(null); } },
       ]);
     } catch (e: any) { Alert.alert('Error', 'Could not save: ' + e.message); }
@@ -396,8 +398,7 @@ export default function AddScreen() {
 
   // ── UI ─────────────────────────────────────────────────────────────────────
   return (
-    <GestureDetector gesture={swipeGesture}>
-    <Animated.View style={[styles.container, swipeAnimatedStyle]}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
@@ -673,7 +674,7 @@ export default function AddScreen() {
               {!syncProgress && syncLog.some(l => l.includes('Done')) && (
                 <TouchableOpacity
                   style={styles.viewLibraryBtn}
-                  onPress={() => { setShowSyncPanel(false); router.push('/'); }}
+                  onPress={() => { setShowSyncPanel(false); onRequestLibraryPage(); }}
                 >
                   <Ionicons name="grid-outline" size={18} color={Colors.bg} />
                   <Text style={styles.viewLibraryBtnText}>View Library</Text>
@@ -730,8 +731,7 @@ export default function AddScreen() {
           </ScrollView>
         </View>
       </Modal>
-    </Animated.View>
-    </GestureDetector>
+    </View>
   );
 }
 

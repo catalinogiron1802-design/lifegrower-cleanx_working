@@ -5,14 +5,10 @@ import {
 } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation, router } from 'expo-router';
-import { Colors, Radius } from '../src/utils/theme';
-import { Storage, FolderStorage, MediaItem, Folder } from '../src/store/storage';
+import { useFocusEffect, router } from 'expo-router';
+import { Colors, Radius } from '../utils/theme';
+import { Storage, FolderStorage, MediaItem, Folder } from '../store/storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { GestureDetector } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
-import { getTabBarStyle } from './_layout';
-import { useSwipeTabNavigation } from '../src/utils/swipeTabNavigation';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const ITEM_HEIGHT = SCREEN_H;
@@ -439,21 +435,26 @@ const ReelItem = React.memo(function ReelItem({
 
 // ── ReelsScreen ───────────────────────────────────────────────────────────────
 
-export default function ReelsScreen() {
-  const navigation = useNavigation();
+interface ReelsScreenProps {
+  isActive: boolean;
+  tabBarRevealed: boolean;
+  onTabBarRevealedChange: (revealed: boolean) => void;
+  onRequestAddPage: () => void;
+}
+
+export default function ReelsScreen({
+  isActive, tabBarRevealed, onTabBarRevealedChange, onRequestAddPage,
+}: ReelsScreenProps) {
   const insets = useSafeAreaInsets();
-  const { gesture: swipeGesture, animatedStyle: swipeAnimatedStyle } = useSwipeTabNavigation();
   const [allItems, setAllItems]       = useState<MediaItem[]>([]);
   const [folders, setFolders]         = useState<Folder[]>([]);
   const [activeFolderId, setActiveFolderId] = useState<string | null | 'all'>('all');
   const [activeIndex, setActiveIndex] = useState(0);
-  const [screenFocused, setScreenFocused] = useState(false);
   const [showFolderBar, setShowFolderBar] = useState(true);
   const hideBarTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const flatListRef = useRef<FlatList<MediaItem>>(null);
 
   // ── Bottom tab bar: hidden while on Reels, peek on swipe-up ────────────────
-  const [tabBarRevealed, setTabBarRevealed] = useState(false);
   const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [selectMode, setSelectMode]       = useState(false);
@@ -488,30 +489,21 @@ export default function ReelsScreen() {
   }, []);
 
   useFocusEffect(useCallback(() => {
+    if (!isActive) return;
     load();
-    setScreenFocused(true);
     startHideTimer();
     return () => {
-      setScreenFocused(false);
       if (hideBarTimer.current) clearTimeout(hideBarTimer.current);
       if (revealTimer.current) clearTimeout(revealTimer.current);
-      setTabBarRevealed(false);
+      onTabBarRevealedChange(false);
     };
-  }, [load, startHideTimer]));
-
-  // Hide the parent tab bar while Reels is focused; bring it back when a
-  // swipe-up reveal is active, or when leaving this screen entirely.
-  React.useEffect(() => {
-    navigation.setOptions({
-      tabBarStyle: (screenFocused && !tabBarRevealed) ? { display: 'none' } : getTabBarStyle(insets),
-    });
-  }, [screenFocused, tabBarRevealed, navigation, insets]);
+  }, [isActive, load, startHideTimer, onTabBarRevealedChange]));
 
   const revealTabBar = useCallback(() => {
-    setTabBarRevealed(true);
+    onTabBarRevealedChange(true);
     if (revealTimer.current) clearTimeout(revealTimer.current);
-    revealTimer.current = setTimeout(() => setTabBarRevealed(false), 4000);
-  }, []);
+    revealTimer.current = setTimeout(() => onTabBarRevealedChange(false), 4000);
+  }, [onTabBarRevealedChange]);
 
   // Sits just above the iOS home-indicator zone so the system's own
   // swipe-up-to-home gesture doesn't steal the touch. Responds to a tap
@@ -646,7 +638,7 @@ export default function ReelsScreen() {
     <ReelItem
       item={item}
       isActive={index === activeIndex}
-      screenFocused={screenFocused}
+      screenFocused={isActive}
       selectMode={selectMode}
       isSelected={selectedIds.has(item.id)}
       folders={folders}
@@ -657,7 +649,7 @@ export default function ReelsScreen() {
       onTapInSelectMode={toggleSelect}
       onMove={handleMove}
     />
-  ), [activeIndex, screenFocused, selectMode, selectedIds, folders, handleWatched, handleComprehend, handleDelete, handleMove]);
+  ), [activeIndex, isActive, selectMode, selectedIds, folders, handleWatched, handleComprehend, handleDelete, handleMove]);
 
   const activeFolderLabel = (() => {
     if (activeFolderId === 'all') return { emoji: '🗂️', name: 'All Videos' };
@@ -673,7 +665,7 @@ export default function ReelsScreen() {
         <Text style={styles.emptyEmoji}>🎬</Text>
         <Text style={styles.emptyTitle}>No videos yet</Text>
         <Text style={styles.emptySub}>Add videos to your library and they'll appear here as reels</Text>
-        <TouchableOpacity style={styles.emptyBtn} onPress={() => router.push('/add')}>
+        <TouchableOpacity style={styles.emptyBtn} onPress={onRequestAddPage}>
           <Ionicons name="add-circle-outline" size={20} color={Colors.bg} />
           <Text style={styles.emptyBtnText}>Add a Video</Text>
         </TouchableOpacity>
@@ -682,8 +674,7 @@ export default function ReelsScreen() {
   }
 
   return (
-    <GestureDetector gesture={swipeGesture}>
-    <Animated.View style={[styles.container, swipeAnimatedStyle]}>
+    <View style={styles.container}>
       {items.length > 0 ? (
         <FlatList
           ref={flatListRef}
@@ -854,8 +845,7 @@ export default function ReelsScreen() {
           <View style={styles.tabBarHandleBar} />
         </View>
       )}
-    </Animated.View>
-    </GestureDetector>
+    </View>
   );
 }
 

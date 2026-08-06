@@ -9,11 +9,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { GestureDetector } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
-import { MediaItem, Storage } from '../src/store/storage';
-import { useSwipeTabNavigation } from '../src/utils/swipeTabNavigation';
-import { Colors, Radius, Shadow } from '../src/utils/theme';
+import { MediaItem, Storage } from '../store/storage';
+import { Colors, Radius, Shadow } from '../utils/theme';
 
 const SESSIONS_KEY = 'lifegrower_sessions';
 
@@ -25,8 +22,11 @@ interface Achievement {
   id: string; emoji: string; title: string; desc: string; unlocked: boolean;
 }
 
-export default function ProgressScreen() {
-  const { gesture: swipeGesture, animatedStyle: swipeAnimatedStyle } = useSwipeTabNavigation();
+interface GrowthScreenProps {
+  isActive: boolean;
+}
+
+export default function GrowthScreen({ isActive }: GrowthScreenProps) {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
 
@@ -39,7 +39,10 @@ export default function ProgressScreen() {
     setSessions(rawSessions ? JSON.parse(rawSessions) : []);
   }, []);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => {
+    if (!isActive) return;
+    load();
+  }, [isActive, load]));
 
   const totalWatches = items.reduce((s, i) => s + (i.watchCount || 0), 0);
   const comprehendedCount = items.filter(i => i.comprehended).length;
@@ -125,8 +128,7 @@ export default function ProgressScreen() {
     : 0;
 
   return (
-    <GestureDetector gesture={swipeGesture}>
-    <Animated.View style={[styles.container, swipeAnimatedStyle]}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
@@ -228,8 +230,7 @@ export default function ProgressScreen() {
         </View>
 
       </ScrollView>
-    </Animated.View>
-    </GestureDetector>
+    </View>
   );
 }
 
