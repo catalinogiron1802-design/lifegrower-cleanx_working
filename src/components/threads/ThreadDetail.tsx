@@ -37,7 +37,7 @@ export default function ThreadDetail({ thread, onBack, onEdit, onDelete }: Threa
       </View>
 
       <BottomSheetScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <PhotoCarousel uris={thread.photoUris} height={320} />
+        <PhotoCarousel uris={thread.photoUris} height={320} enableLightbox />
 
         <Text style={styles.title}>{thread.title}</Text>
         <Text style={styles.date}>

@@ -20,7 +20,7 @@ export default function ThreadCard({ thread, onView, onDelete }: ThreadCardProps
 
   return (
     <View style={styles.card}>
-      <PhotoCarousel uris={thread.photoUris} height={200} />
+      <PhotoCarousel uris={thread.photoUris} height={200} enableLightbox />
 
       <TouchableOpacity style={styles.body} activeOpacity={0.85} onPress={() => onView(thread)}>
         <View style={styles.headerRow}>
