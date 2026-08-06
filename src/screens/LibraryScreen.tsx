@@ -157,9 +157,13 @@ const MediaCard = React.memo(({
 // ─────────────────────────────────────────────────────────────────────────────
 interface LibraryScreenProps {
   isActive: boolean;
+  // Height of the floating tab bar overlay, so the multi-select action bar
+  // (also absolutely positioned at the bottom) sits above it instead of
+  // being hidden underneath it.
+  bottomInset?: number;
 }
 
-export default function LibraryScreen({ isActive }: LibraryScreenProps) {
+export default function LibraryScreen({ isActive, bottomInset = 0 }: LibraryScreenProps) {
   const SERVER_URL = useServerUrl();
   const { composeWithPhotos } = useThreadsSheet();
   const [items, setItems] = useState<MediaItem[]>([]);
@@ -681,7 +685,7 @@ export default function LibraryScreen({ isActive }: LibraryScreenProps) {
             {row.length === 1 && <View style={styles.cardPlaceholder} />}
           </View>
         )}
-        contentContainerStyle={[styles.grid, selectMode && { paddingBottom: 120 }]}
+        contentContainerStyle={[styles.grid, selectMode && { paddingBottom: 120 + bottomInset }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />
@@ -690,7 +694,7 @@ export default function LibraryScreen({ isActive }: LibraryScreenProps) {
 
       {/* ── Multi-select action bar ── */}
       {selectMode && (
-        <View style={styles.actionBar}>
+        <View style={[styles.actionBar, { bottom: bottomInset }]}>
           <View style={styles.actionBarTop}>
             <TouchableOpacity onPress={exitSelectMode} style={styles.actionCancel}>
               <Ionicons name="close" size={20} color={Colors.text2} />

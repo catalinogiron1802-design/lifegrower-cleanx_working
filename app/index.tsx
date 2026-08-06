@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PagerView from 'react-native-pager-view';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomTabBar from '../src/components/BottomTabBar';
 import { useThreadsSheet } from '../src/context/ThreadsSheetContext';
 import AddScreen from '../src/screens/AddScreen';
@@ -16,9 +17,17 @@ const GROWTH = 3;
 
 export default function PagerHostScreen() {
   const { present } = useThreadsSheet();
+  const insets = useSafeAreaInsets();
   const pagerRef = useRef<PagerView>(null);
   const [currentIndex, setCurrentIndex] = useState(LIBRARY);
   const [reelsTabBarRevealed, setReelsTabBarRevealed] = useState(false);
+
+  // The tab bar now floats as an overlay on top of the pager (rather than
+  // reserving its own layout space the way the old Tabs navigator did), so
+  // screens with their own absolutely-positioned bottom bars (Library's
+  // multi-select action bar) need to know its height to sit above it
+  // instead of being hidden underneath it.
+  const tabBarHeight = 60 + insets.bottom;
 
   const goToPage = useCallback((index: number) => {
     pagerRef.current?.setPage(index);
@@ -42,7 +51,7 @@ export default function PagerHostScreen() {
         onPageSelected={handlePageSelected}
       >
         <View key="library" style={styles.page}>
-          <LibraryScreen isActive={currentIndex === LIBRARY} />
+          <LibraryScreen isActive={currentIndex === LIBRARY} bottomInset={tabBarHeight} />
         </View>
         <View key="reels" style={styles.page}>
           <ReelsScreen
