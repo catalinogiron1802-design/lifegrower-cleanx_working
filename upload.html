@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LifeGrower PC Upload</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding: 50px; background: #f4f4f4; }
+        .card { background: white; padding: 30px; borderRadius: 10px; boxShadow: 0 4px 10px rgba(0,0,0,0.1); width: 400px; text-align: center; }
+        input { margin: 20px 0; }
+        button { background: #4CAF50; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🌱 Send to Phone</h2>
+        <input type="file" id="fileInput">
+        <br>
+        <button onclick="uploadFile()">Upload Video/Photo</button>
+        <p id="status"></p>
+    </div>
+
+    <script>
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) return alert("Select a file first");
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            document.getElementById('status').innerText = "Uploading...";
+
+            try {
+                // Use localhost here because the browser is on the same PC as the server
+                const response = await fetch('http://192.168.254.100:3000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                document.getElementById('status').innerText = "✅ Success! Now tap 'Sync' on your phone.";
+            } catch (err) {
+                document.getElementById('status').innerText = "❌ Error: Is server.js running?";
+            }
+        }
+    </script>
+</body>
+</html>
