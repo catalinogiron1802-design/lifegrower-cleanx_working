@@ -96,6 +96,14 @@ const ReelItem = React.memo(function ReelItem({
 
   React.useEffect(() => {
     if (!player) return;
+
+    // Reset before (re)checking size — this effect and the isActive-reset
+    // effect below both fire on the same render when a reel (re)activates,
+    // and declaration order isn't a safe thing to depend on across them.
+    // Resetting here, before the synchronous videoTrack check right below,
+    // guarantees the check's result can't get wiped out afterward.
+    setVideoSize(null);
+
     const sub = player.addListener('statusChange', ({ status: s, error }: any) => {
       if (!mountedRef.current) return;
       if (s === 'error') setErrorMsg(error?.message ?? String(error) ?? 'Unknown error');
@@ -125,7 +133,6 @@ const ReelItem = React.memo(function ReelItem({
     if (isActive) {
       setPaused(false);
       setErrorMsg(null);
-      setVideoSize(null);
       watchedRef.current = false;
     } else {
       try { player?.pause(); } catch (_) {}
