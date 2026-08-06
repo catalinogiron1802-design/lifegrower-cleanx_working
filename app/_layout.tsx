@@ -4,6 +4,7 @@ import { Tabs } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import ThreadsFloatingBubble from '../src/components/threads/ThreadsFloatingBubble';
 import ThreadsSheet from '../src/components/threads/ThreadsSheet';
 import { ThreadsSheetProvider, useThreadsSheet } from '../src/context/ThreadsSheetContext';
 import { Colors } from '../src/utils/theme';
@@ -113,6 +114,7 @@ export default function RootLayout() {
           <ThreadsSheetProvider>
             <Layout />
             <ThreadsSheet />
+            <ThreadsFloatingBubble />
           </ThreadsSheetProvider>
         </BottomSheetModalProvider>
       </GestureHandlerRootView>

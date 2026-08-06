@@ -7,12 +7,12 @@ import ThreadCard from './ThreadCard';
 
 interface ThreadFeedProps {
   threads: Thread[];
-  onEdit: (thread: Thread) => void;
+  onView: (thread: Thread) => void;
   onDelete: (thread: Thread) => void;
   onCompose: () => void;
 }
 
-export default function ThreadFeed({ threads, onEdit, onDelete, onCompose }: ThreadFeedProps) {
+export default function ThreadFeed({ threads, onView, onDelete, onCompose }: ThreadFeedProps) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -24,7 +24,7 @@ export default function ThreadFeed({ threads, onEdit, onDelete, onCompose }: Thr
         data={threads}
         keyExtractor={(t: Thread) => t.id}
         renderItem={({ item }: { item: Thread }) => (
-          <ThreadCard thread={item} onEdit={onEdit} onDelete={onDelete} />
+          <ThreadCard thread={item} onView={onView} onDelete={onDelete} />
         )}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}

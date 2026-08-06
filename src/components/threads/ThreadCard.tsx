@@ -6,11 +6,11 @@ import PhotoCarousel from './PhotoCarousel';
 
 interface ThreadCardProps {
   thread: Thread;
-  onEdit: (thread: Thread) => void;
+  onView: (thread: Thread) => void;
   onDelete: (thread: Thread) => void;
 }
 
-export default function ThreadCard({ thread, onEdit, onDelete }: ThreadCardProps) {
+export default function ThreadCard({ thread, onView, onDelete }: ThreadCardProps) {
   const handleDelete = () => {
     Alert.alert('Delete this post?', 'This cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
@@ -22,7 +22,7 @@ export default function ThreadCard({ thread, onEdit, onDelete }: ThreadCardProps
     <View style={styles.card}>
       <PhotoCarousel uris={thread.photoUris} height={200} />
 
-      <TouchableOpacity style={styles.body} activeOpacity={0.85} onPress={() => onEdit(thread)}>
+      <TouchableOpacity style={styles.body} activeOpacity={0.85} onPress={() => onView(thread)}>
         <View style={styles.headerRow}>
           <Text style={styles.title} numberOfLines={2}>{thread.title}</Text>
           <TouchableOpacity onPress={handleDelete} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>

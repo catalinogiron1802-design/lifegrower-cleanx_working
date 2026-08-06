@@ -16,7 +16,7 @@ interface ComposerPhoto {
 interface ThreadComposerProps {
   editingThread: Thread | null;
   onCancel: () => void;
-  onSaved: () => void;
+  onSaved: (id: string) => void;
 }
 
 export default function ThreadComposer({ editingThread, onCancel, onSaved }: ThreadComposerProps) {
@@ -110,7 +110,7 @@ export default function ThreadComposer({ editingThread, onCancel, onSaved }: Thr
           createdAt: Date.now(), updatedAt: Date.now(),
         });
       }
-      onSaved();
+      onSaved(id);
     } catch (e: any) {
       Alert.alert('Error', 'Could not save post: ' + e.message);
     } finally {
