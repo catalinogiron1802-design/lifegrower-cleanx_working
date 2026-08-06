@@ -54,7 +54,16 @@ jobs:
       - name: Package .ipa
         run: |
           set -euo pipefail
-          APP_PATH=$(find build/DerivedData/Build/Products/Release-iphoneos -maxdepth 1 -name "*.app")
+          echo "Listing build/DerivedData/Build/Products for debugging:"
+          find build/DerivedData/Build/Products -maxdepth 2 2>/dev/null || echo "(Products dir not found)"
+
+          APP_PATH=$(find build/DerivedData -type d -name "*.app" | grep -v "/Pods/" | head -n1 || true)
+          if [ -z "$APP_PATH" ]; then
+            echo "No .app bundle found anywhere under build/DerivedData. Full tree:"
+            find build/DerivedData -maxdepth 5
+            exit 1
+          fi
+
           echo "Found app bundle: $APP_PATH"
           mkdir -p build/Payload
           cp -R "$APP_PATH" build/Payload/
