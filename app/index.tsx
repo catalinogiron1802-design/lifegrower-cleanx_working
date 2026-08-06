@@ -20,6 +20,8 @@ import {
   View,
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
+import { useThreadsSheet } from '../src/context/ThreadsSheetContext';
 import { Folder, FolderStorage, MediaItem, Storage } from '../src/store/storage';
 import { useServerUrl } from '../src/utils/serverConfig';
 import { useSwipeTabNavigation } from '../src/utils/swipeTabNavigation';
@@ -158,6 +160,7 @@ const MediaCard = React.memo(({
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LibraryScreen() {
   const SERVER_URL = useServerUrl();
+  const { composeWithPhotos } = useThreadsSheet();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [activeFolderId, setActiveFolderId] = useState<string | null | 'all'>('all');
@@ -394,6 +397,17 @@ export default function LibraryScreen() {
     }
     exitSelectMode();
   }, [items, selectedIds, exitSelectMode]);
+
+  const bulkAddToThread = useCallback(() => {
+    const selected = items.filter(i => selectedIds.has(i.id));
+    const photoUris = selected.filter(i => i.type === 'photo').map(i => i.uri);
+    if (photoUris.length === 0) {
+      Alert.alert('No photos selected', 'Only photos can be added to a Threads post — select at least one photo.');
+      return;
+    }
+    exitSelectMode();
+    composeWithPhotos(photoUris);
+  }, [items, selectedIds, exitSelectMode, composeWithPhotos]);
 
   const toggleComprehend = useCallback(async (item: MediaItem) => {
     await Storage.updateItem(item.id, { comprehended: !item.comprehended });
@@ -633,11 +647,11 @@ export default function LibraryScreen() {
 
   const isInSpecialFolder = activeFolderId === HIDDEN_FOLDER || activeFolderId === ARCHIVED_FOLDER;
 
-  const swipeGesture = useSwipeTabNavigation();
+  const { gesture: swipeGesture, animatedStyle: swipeAnimatedStyle } = useSwipeTabNavigation();
 
   return (
     <GestureDetector gesture={swipeGesture}>
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, swipeAnimatedStyle]}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
 
       <FlatList
@@ -706,6 +720,15 @@ export default function LibraryScreen() {
             >
               <Ionicons name="cloud-upload-outline" size={22} color={Colors.accent} />
               <Text style={[styles.actionBtnLabel, { color: Colors.accent }]}>Backup</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionBtn, selectedIds.size === 0 && styles.actionBtnDisabled]}
+              onPress={bulkAddToThread}
+              disabled={selectedIds.size === 0}
+            >
+              <Ionicons name="chatbubble-ellipses-outline" size={22} color={Colors.accent} />
+              <Text style={[styles.actionBtnLabel, { color: Colors.accent }]}>Thread</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -843,7 +866,7 @@ export default function LibraryScreen() {
           </TouchableOpacity>
         </View>
       </Modal>
-    </View>
+    </Animated.View>
     </GestureDetector>
   );
 }

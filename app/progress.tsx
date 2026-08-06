@@ -10,6 +10,7 @@ import {
   View
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { MediaItem, Storage } from '../src/store/storage';
 import { useSwipeTabNavigation } from '../src/utils/swipeTabNavigation';
 import { Colors, Radius, Shadow } from '../src/utils/theme';
@@ -25,7 +26,7 @@ interface Achievement {
 }
 
 export default function ProgressScreen() {
-  const swipeGesture = useSwipeTabNavigation();
+  const { gesture: swipeGesture, animatedStyle: swipeAnimatedStyle } = useSwipeTabNavigation();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
 
@@ -125,7 +126,7 @@ export default function ProgressScreen() {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, swipeAnimatedStyle]}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
@@ -227,7 +228,7 @@ export default function ProgressScreen() {
         </View>
 
       </ScrollView>
-    </View>
+    </Animated.View>
     </GestureDetector>
   );
 }

@@ -10,6 +10,7 @@ import { Colors, Radius } from '../src/utils/theme';
 import { Storage, FolderStorage, MediaItem, Folder } from '../src/store/storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { getTabBarStyle } from './_layout';
 import { useSwipeTabNavigation } from '../src/utils/swipeTabNavigation';
 
@@ -441,7 +442,7 @@ const ReelItem = React.memo(function ReelItem({
 export default function ReelsScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const swipeGesture = useSwipeTabNavigation();
+  const { gesture: swipeGesture, animatedStyle: swipeAnimatedStyle } = useSwipeTabNavigation();
   const [allItems, setAllItems]       = useState<MediaItem[]>([]);
   const [folders, setFolders]         = useState<Folder[]>([]);
   const [activeFolderId, setActiveFolderId] = useState<string | null | 'all'>('all');
@@ -682,7 +683,7 @@ export default function ReelsScreen() {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, swipeAnimatedStyle]}>
       {items.length > 0 ? (
         <FlatList
           ref={flatListRef}
@@ -853,7 +854,7 @@ export default function ReelsScreen() {
           <View style={styles.tabBarHandleBar} />
         </View>
       )}
-    </View>
+    </Animated.View>
     </GestureDetector>
   );
 }

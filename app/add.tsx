@@ -8,6 +8,7 @@ import {
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { Folder, FolderStorage, MediaItem, Storage } from '../src/store/storage';
 import { useServerUrl } from '../src/utils/serverConfig';
 import { useSwipeTabNavigation } from '../src/utils/swipeTabNavigation';
@@ -45,7 +46,7 @@ interface FetchedFile {
 }
 
 export default function AddScreen() {
-  const swipeGesture = useSwipeTabNavigation();
+  const { gesture: swipeGesture, animatedStyle: swipeAnimatedStyle } = useSwipeTabNavigation();
   const SERVER_URL = useServerUrl();
   const SERVER_IP  = SERVER_URL.replace(/^https?:\/\//, '').replace(/:\d+$/, '');
   const [title, setTitle]           = useState('');
@@ -396,7 +397,7 @@ export default function AddScreen() {
   // ── UI ─────────────────────────────────────────────────────────────────────
   return (
     <GestureDetector gesture={swipeGesture}>
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, swipeAnimatedStyle]}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
@@ -729,7 +730,7 @@ export default function AddScreen() {
           </ScrollView>
         </View>
       </Modal>
-    </View>
+    </Animated.View>
     </GestureDetector>
   );
 }

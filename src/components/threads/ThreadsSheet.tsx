@@ -1,5 +1,5 @@
 import { BottomSheetBackdrop, BottomSheetBackdropProps, BottomSheetModal } from '@gorhom/bottom-sheet';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useThreadsSheet } from '../../context/ThreadsSheetContext';
 import { Thread, ThreadStorage } from '../../store/threadStorage';
@@ -11,9 +11,12 @@ import ThreadFeed from './ThreadFeed';
 type Mode = 'feed' | 'detail' | 'compose';
 
 export default function ThreadsSheet() {
-  const { sheetRef, setIsOpen } = useThreadsSheet();
+  const { sheetRef, setIsOpen, pendingComposePhotos, clearPendingComposePhotos } = useThreadsSheet();
   const [mode, setMode] = useState<Mode>('feed');
   const [activeThread, setActiveThread] = useState<Thread | null>(null);
+  // Snapshot of pendingComposePhotos, captured once so it survives the
+  // context clearing it right after consumption.
+  const [initialComposePhotos, setInitialComposePhotos] = useState<string[] | null>(null);
   // Tracks whether the current compose session is a brand-new post or an
   // edit of an existing one, so Cancel/Save know whether to land back on
   // the feed or back on that post's detail view.
@@ -35,6 +38,18 @@ export default function ThreadsSheet() {
     if (index >= 0) loadThreads();
   }, [loadThreads, setIsOpen]);
 
+  // Another screen (e.g. Library's "Add to Thread") requested the sheet open
+  // straight into compose mode with a set of photos already picked.
+  useEffect(() => {
+    if (pendingComposePhotos) {
+      setInitialComposePhotos(pendingComposePhotos);
+      setActiveThread(null);
+      setComposeOrigin('new');
+      setMode('compose');
+      clearPendingComposePhotos();
+    }
+  }, [pendingComposePhotos, clearPendingComposePhotos]);
+
   const handleView = useCallback((thread: Thread) => {
     setActiveThread(thread);
     setMode('detail');
@@ -48,6 +63,7 @@ export default function ThreadsSheet() {
 
   const handleCompose = useCallback(() => {
     setActiveThread(null);
+    setInitialComposePhotos(null);
     setComposeOrigin('new');
     setMode('compose');
   }, []);
@@ -62,12 +78,14 @@ export default function ThreadsSheet() {
   const handleBackToFeed = useCallback(() => {
     setMode('feed');
     setActiveThread(null);
+    setInitialComposePhotos(null);
   }, []);
 
   // Cancelling a new post always returns to the feed (nothing existed
   // before); cancelling an edit returns to that post's detail view, since
   // the post itself is unchanged and still valid to show.
   const handleCancelCompose = useCallback(() => {
+    setInitialComposePhotos(null);
     if (composeOrigin === 'edit' && activeThread) {
       setMode('detail');
     } else {
@@ -77,6 +95,7 @@ export default function ThreadsSheet() {
   }, [composeOrigin, activeThread]);
 
   const handleSaved = useCallback(async (savedId: string) => {
+    setInitialComposePhotos(null);
     const all = await ThreadStorage.getAll();
     setThreads(all);
     if (composeOrigin === 'edit') {
@@ -119,6 +138,7 @@ export default function ThreadsSheet() {
         <ThreadComposer
           key={activeThread?.id ?? 'new'}
           editingThread={activeThread}
+          initialPhotoUris={initialComposePhotos ?? undefined}
           onCancel={handleCancelCompose}
           onSaved={handleSaved}
         />

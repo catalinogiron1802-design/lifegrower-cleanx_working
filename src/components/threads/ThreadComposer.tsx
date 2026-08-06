@@ -15,14 +15,20 @@ interface ComposerPhoto {
 
 interface ThreadComposerProps {
   editingThread: Thread | null;
+  // Already-permanent photo URIs to seed a brand-new post with (e.g. photos
+  // picked from the Library via "Add to Thread") — ignored when editingThread
+  // is set, since that already provides its own photos.
+  initialPhotoUris?: string[];
   onCancel: () => void;
   onSaved: (id: string) => void;
 }
 
-export default function ThreadComposer({ editingThread, onCancel, onSaved }: ThreadComposerProps) {
-  const [photos, setPhotos] = useState<ComposerPhoto[]>(
-    () => editingThread ? editingThread.photoUris.map(uri => ({ uri, isNew: false })) : []
-  );
+export default function ThreadComposer({ editingThread, initialPhotoUris, onCancel, onSaved }: ThreadComposerProps) {
+  const [photos, setPhotos] = useState<ComposerPhoto[]>(() => {
+    if (editingThread) return editingThread.photoUris.map(uri => ({ uri, isNew: false }));
+    if (initialPhotoUris?.length) return initialPhotoUris.map(uri => ({ uri, isNew: false }));
+    return [];
+  });
   const [title, setTitle] = useState(editingThread?.title ?? '');
   const [caption, setCaption] = useState(editingThread?.caption ?? '');
   const [tags, setTags] = useState<string[]>(editingThread?.tags ?? []);
