@@ -1,17 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
   ScrollView, StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { MediaItem, Storage } from '../src/store/storage';
 import { useSwipeTabNavigation } from '../src/utils/swipeTabNavigation';
-import { Colors, Radius } from '../src/utils/theme';
+import { Colors, Radius, Shadow } from '../src/utils/theme';
 
 const SESSIONS_KEY = 'lifegrower_sessions';
 
@@ -134,6 +135,18 @@ export default function ProgressScreen() {
           <Text style={styles.headerSub}>Your personal progress snapshot</Text>
         </View>
 
+        {/* Focus Timer entry point (moved off the tab bar) */}
+        <TouchableOpacity style={styles.timerEntryCard} onPress={() => router.push('/timer')}>
+          <View style={styles.timerEntryLeft}>
+            <Ionicons name="timer-outline" size={22} color={Colors.accent} />
+            <View>
+              <Text style={styles.timerEntryTitle}>Focus Timer</Text>
+              <Text style={styles.timerEntrySub}>Start a focused growth session</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={Colors.text3} />
+        </TouchableOpacity>
+
         {/* Today card */}
         <View style={styles.todayCard}>
           <View style={styles.todayLeft}>
@@ -228,6 +241,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Georgia', letterSpacing: 0.5,
   },
   headerSub: { fontSize: 14, color: Colors.text3, marginTop: 4 },
+
+  timerEntryCard: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: Colors.surface, borderRadius: Radius.md,
+    borderWidth: 1, borderColor: Colors.accentDim,
+    paddingHorizontal: 16, paddingVertical: 14, marginBottom: 16,
+    ...Shadow.card,
+  },
+  timerEntryLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  timerEntryTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },
+  timerEntrySub: { fontSize: 12, color: Colors.text3, marginTop: 2 },
 
   todayCard: {
     backgroundColor: Colors.accentGlow,

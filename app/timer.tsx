@@ -12,8 +12,6 @@ import {
   Vibration,
   View,
 } from 'react-native';
-import { GestureDetector } from 'react-native-gesture-handler';
-import { useSwipeTabNavigation } from '../src/utils/swipeTabNavigation';
 import { Colors, Radius, Shadow } from '../src/utils/theme';
 
 const SESSIONS_KEY = 'lifegrower_sessions';
@@ -40,7 +38,6 @@ function formatTime(s: number) {
 }
 
 export default function TimerScreen() {
-  const swipeGesture = useSwipeTabNavigation();
   const [totalSecs, setTotalSecs] = useState(25 * 60);
   const [remaining, setRemaining] = useState(25 * 60);
   const [running, setRunning] = useState(false);
@@ -142,7 +139,6 @@ export default function TimerScreen() {
     .reduce((sum, s) => sum + s.duration, 0);
 
   return (
-    <GestureDetector gesture={swipeGesture}>
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -279,7 +275,6 @@ export default function TimerScreen() {
 
       </ScrollView>
     </View>
-    </GestureDetector>
   );
 }
 

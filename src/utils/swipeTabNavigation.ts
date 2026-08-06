@@ -2,8 +2,12 @@ import { router, usePathname } from 'expo-router';
 import { Gesture } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 
-// Order matches the tab bar in app/_layout.tsx
-const TAB_ORDER = ['/', '/reels', '/add', '/timer', '/progress'];
+// Order matches the tab bar in app/_layout.tsx. '/threads' is deliberately
+// excluded — it's not a real screen (it opens a bottom sheet overlay via a
+// tabPress listener), so it has nothing to land on if swiped into, and
+// swipe-triggering the sheet would risk two gesture recognizers (this one
+// and gorhom's internal pan) fighting each other.
+const TAB_ORDER = ['/', '/reels', '/add', '/progress'];
 
 const SWIPE_DISTANCE_THRESHOLD = 50;
 

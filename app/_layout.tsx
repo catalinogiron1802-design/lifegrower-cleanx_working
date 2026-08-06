@@ -1,8 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { Tabs } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import ThreadsSheet from '../src/components/threads/ThreadsSheet';
+import { ThreadsSheetProvider, useThreadsSheet } from '../src/context/ThreadsSheetContext';
 import { Colors } from '../src/utils/theme';
 
 // Shared with reels.tsx, which has to reset tabBarStyle itself when the tab
@@ -22,6 +25,7 @@ export function getTabBarStyle(insets: { bottom: number }) {
 // Separate component so we can use the hook inside SafeAreaProvider
 function Layout() {
   const insets = useSafeAreaInsets();
+  const { present } = useThreadsSheet();
 
   return (
     <Tabs
@@ -63,12 +67,20 @@ function Layout() {
         }}
       />
       <Tabs.Screen
-        name="timer"
+        name="threads"
         options={{
-          title: 'Timer',
+          title: 'Threads',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="timer-outline" size={size} color={color} />
+            <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />
           ),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            // Threads isn't a real screen — it opens a bottom sheet overlaid
+            // on whatever tab is currently active, so it must never navigate.
+            e.preventDefault();
+            present();
+          },
         }}
       />
       <Tabs.Screen
@@ -80,9 +92,13 @@ function Layout() {
           ),
         }}
       />
-      {/* Hidden screens - not shown in tab bar */}
+      {/* Hidden screens - not shown in tab bar, but still reachable via router.push */}
       <Tabs.Screen
         name="detail"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="timer"
         options={{ href: null }}
       />
     </Tabs>
@@ -93,7 +109,12 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <Layout />
+        <BottomSheetModalProvider>
+          <ThreadsSheetProvider>
+            <Layout />
+            <ThreadsSheet />
+          </ThreadsSheetProvider>
+        </BottomSheetModalProvider>
       </GestureHandlerRootView>
     </SafeAreaProvider>
   );
