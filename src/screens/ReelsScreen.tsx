@@ -107,9 +107,14 @@ const ReelItem = React.memo(function ReelItem({
 
     // Writes through to the module-level cache so this video's size is only
     // ever detected once, not re-detected (and potentially re-detected
-    // wrong) every time this reel is revisited.
+    // wrong) every time this reel is revisited. This also guards against a
+    // player firing a second, spurious videoTrackChange later during
+    // playback (e.g. after a layout pass) with different-looking numbers —
+    // once a size is cached for this item, it's treated as final and later
+    // events are ignored rather than allowed to silently overwrite it.
     const applySize = (width?: number, height?: number) => {
       if (!width || !height) return;
+      if (videoSizeCache.has(item.id)) return;
       videoSizeCache.set(item.id, { width, height });
       if (mountedRef.current) setVideoSize({ width, height });
     };
