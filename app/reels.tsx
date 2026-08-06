@@ -32,6 +32,13 @@ interface ReelItemProps {
   onMove: (item: MediaItem, folderId: string | null) => void;
 }
 
+// Video dimensions are a property of the file, not of whether this
+// particular reel happens to be active right now — caching them here (keyed
+// by item.id, for the life of the app) means they're only ever detected
+// once, instead of being thrown away and re-detected via the player's
+// flaky/racy track-resolution events every time a reel is revisited.
+const videoSizeCache = new Map<string, { width: number; height: number }>();
+
 const ReelItem = React.memo(function ReelItem({
   item, isActive, screenFocused,
   selectMode, isSelected,
@@ -41,7 +48,9 @@ const ReelItem = React.memo(function ReelItem({
   const [muted, setMuted] = useState(false);
   const [paused, setPaused] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [videoSize, setVideoSize] = useState<{ width: number; height: number } | null>(null);
+  const [videoSize, setVideoSize] = useState<{ width: number; height: number } | null>(
+    () => videoSizeCache.get(item.id) ?? null
+  );
   const [retryKey, setRetryKey] = useState(0);
   const [showControls, setShowControls] = useState(false);
 
@@ -97,22 +106,21 @@ const ReelItem = React.memo(function ReelItem({
   React.useEffect(() => {
     if (!player) return;
 
-    // Reset before (re)checking size — this effect and the isActive-reset
-    // effect below both fire on the same render when a reel (re)activates,
-    // and declaration order isn't a safe thing to depend on across them.
-    // Resetting here, before the synchronous videoTrack check right below,
-    // guarantees the check's result can't get wiped out afterward.
-    setVideoSize(null);
+    // Writes through to the module-level cache so this video's size is only
+    // ever detected once, not re-detected (and potentially re-detected
+    // wrong) every time this reel is revisited.
+    const applySize = (width?: number, height?: number) => {
+      if (!width || !height) return;
+      videoSizeCache.set(item.id, { width, height });
+      if (mountedRef.current) setVideoSize({ width, height });
+    };
 
     const sub = player.addListener('statusChange', ({ status: s, error }: any) => {
       if (!mountedRef.current) return;
       if (s === 'error') setErrorMsg(error?.message ?? String(error) ?? 'Unknown error');
     });
     const sub2 = player.addListener('videoTrackChange', ({ videoTrack }: any) => {
-      if (!mountedRef.current) return;
-      const width = videoTrack?.size?.width;
-      const height = videoTrack?.size?.height;
-      if (width && height) setVideoSize({ width, height });
+      applySize(videoTrack?.size?.width, videoTrack?.size?.height);
     });
 
     // The track can resolve before this effect subscribes (the player is
@@ -121,13 +129,11 @@ const ReelItem = React.memo(function ReelItem({
     // current track as a fallback so we don't depend on winning that race.
     try {
       const vt: any = (player as any).videoTrack;
-      if (vt?.size?.width && vt?.size?.height) {
-        setVideoSize({ width: vt.size.width, height: vt.size.height });
-      }
+      applySize(vt?.size?.width, vt?.size?.height);
     } catch (_) {}
 
     return () => { sub.remove(); sub2.remove(); };
-  }, [player]);
+  }, [player, item.id]);
 
   React.useEffect(() => {
     if (isActive) {
