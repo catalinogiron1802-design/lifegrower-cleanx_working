@@ -9,6 +9,7 @@ import { useFocusEffect, useNavigation, router } from 'expo-router';
 import { Colors, Radius } from '../src/utils/theme';
 import { Storage, FolderStorage, MediaItem, Folder } from '../src/store/storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getTabBarStyle } from './_layout';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const ITEM_HEIGHT = SCREEN_H;
@@ -485,9 +486,9 @@ export default function ReelsScreen() {
   // swipe-up reveal is active, or when leaving this screen entirely.
   React.useEffect(() => {
     navigation.setOptions({
-      tabBarStyle: (screenFocused && !tabBarRevealed) ? { display: 'none' } : undefined,
+      tabBarStyle: (screenFocused && !tabBarRevealed) ? { display: 'none' } : getTabBarStyle(insets),
     });
-  }, [screenFocused, tabBarRevealed, navigation]);
+  }, [screenFocused, tabBarRevealed, navigation, insets]);
 
   const revealTabBar = useCallback(() => {
     setTabBarRevealed(true);

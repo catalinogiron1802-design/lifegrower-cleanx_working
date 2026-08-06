@@ -47,7 +47,12 @@ function startDownloadJob(jobId, link) {
     '--no-playlist',
     '--newline',
     '--restrict-filenames',
-    '-f', 'best[ext=mp4]/best',
+    // Force H.264 video + AAC audio merged into an .mp4 — "best[ext=mp4]/best"
+    // could otherwise land on a video-only or VP9/AV1 stream (common for
+    // full-length videos, less so for Shorts), which downloads fine but
+    // plays back black/silent on iOS since AVPlayer won't decode it.
+    '-f', 'bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+    '--merge-output-format', 'mp4',
     '--print', 'after_move:filepath',
     '-o', outputTemplate,
     link,

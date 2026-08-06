@@ -5,13 +5,23 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../src/utils/theme';
 
+// Shared with reels.tsx, which has to reset tabBarStyle itself when the tab
+// bar is swiped back into view — using `undefined` there would fall back to
+// React Navigation's default (white) style instead of this dark one.
+export function getTabBarStyle(insets: { bottom: number }) {
+  return {
+    backgroundColor: Colors.surface,
+    borderTopColor: Colors.border,
+    borderTopWidth: 1,
+    height: 60 + insets.bottom,
+    paddingBottom: 8 + insets.bottom,
+    paddingTop: 8,
+  };
+}
+
 // Separate component so we can use the hook inside SafeAreaProvider
 function Layout() {
   const insets = useSafeAreaInsets();
-
-  // Base padding + whatever the system navigation bar needs at the bottom
-  const tabBarPaddingBottom = 8 + insets.bottom;
-  const tabBarHeight = 60 + insets.bottom;
 
   return (
     <Tabs
@@ -20,14 +30,7 @@ function Layout() {
         tabBarActiveTintColor: Colors.accent,
         tabBarInactiveTintColor: Colors.text3,
         tabBarLabelStyle: styles.tabLabel,
-        tabBarStyle: {
-          backgroundColor: Colors.surface,
-          borderTopColor: Colors.border,
-          borderTopWidth: 1,
-          height: tabBarHeight,
-          paddingBottom: tabBarPaddingBottom,
-          paddingTop: 8,
-        },
+        tabBarStyle: getTabBarStyle(insets),
       }}
     >
       <Tabs.Screen
